@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>全通路比價中心 v1.0.0</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="wrap">
+    <header class="hero">
+      <div>
+        <span class="badge">v1.0.0</span>
+        <h1>全通路比價中心</h1>
+        <p>比的不是標價，是你最後到底要掏多少錢。</p>
+      </div>
+    </header>
+
+    <section class="card">
+      <h2>商品條件</h2>
+      <div class="grid">
+        <label>商品類型
+          <select id="category">
+            <option>大家電</option><option>廚房家電</option><option>生活家電</option>
+            <option>3C資訊</option><option>手機平板</option><option>生活用品</option>
+            <option>家具寢具</option><option>清潔用品</option><option>寵物用品</option>
+            <option>美妝日用</option><option>其他</option>
+          </select>
+        </label>
+
+        <label>品牌
+          <input id="brand" placeholder="例：Panasonic" />
+        </label>
+
+        <label>型號 / 關鍵字
+          <input id="model" placeholder="例：NR-C389HV" />
+        </label>
+
+        <label>年份
+          <select id="year"></select>
+        </label>
+
+        <label>地區
+          <select id="region">
+            <option value="0">台灣本島一般地區</option>
+            <option value="100">偏遠地區 +100</option>
+            <option value="300">山區 +300</option>
+            <option value="500">離島 +500</option>
+          </select>
+        </label>
+
+        <label>樓層搬運
+          <select id="floor">
+            <option value="0">無</option>
+            <option value="100">2F +100</option>
+            <option value="200">3F +200</option>
+            <option value="300">4F +300</option>
+            <option value="500">5F以上 +500</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="channels">
+        <div class="channel-title">比價通路</div>
+        <div id="channelBox" class="checks"></div>
+      </div>
+
+      <button id="searchBtn" class="primary">開始建立比價清單</button>
+    </section>
+
+    <section class="card">
+      <h2>折價 / 加價因素</h2>
+      <div class="grid">
+        <label>折價券（元）<input id="coupon" type="number" value="0" min="0"></label>
+        <label>折扣（%）<input id="discountPct" type="number" value="0" min="0" max="100" step="0.1"></label>
+        <label>信用卡回饋（%）<input id="cardPct" type="number" value="0" min="0" max="100" step="0.1"></label>
+        <label>會員 / 點數折抵（元）<input id="points" type="number" value="0" min="0"></label>
+        <label>平台幣 / 回饋金（元）<input id="platformCredit" type="number" value="0" min="0"></label>
+        <label>安裝費（元）<input id="installFee" type="number" value="0" min="0"></label>
+        <label>基本運費（元）<input id="shipping" type="number" value="0" min="0"></label>
+        <label>舊機回收 / 折抵（元）<input id="tradeIn" type="number" value="0" min="0"></label>
+      </div>
+      <p class="hint">公式：標價 − 折扣 − 折價券 − 點數 − 平台回饋 − 舊機折抵 − 信用卡回饋 + 運費 + 地區費 + 樓層費 + 安裝費</p>
+    </section>
+
+    <section class="card">
+      <div class="result-head">
+        <h2>比價結果</h2>
+        <select id="sort">
+          <option value="effective">依到手價排序</option>
+          <option value="listed">依標價排序</option>
+          <option value="channel">依通路排序</option>
+        </select>
+      </div>
+      <div id="summary" class="summary"></div>
+      <div id="results" class="results empty">先輸入商品並建立比價清單。</div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
