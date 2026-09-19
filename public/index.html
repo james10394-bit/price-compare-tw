@@ -3,19 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>全通路比價中心 v1.3.0</title>
-  <link rel="stylesheet" href="style.css">
+  <title>全通路比價中心 v1.3.1</title>
+  <link rel="stylesheet" href="style.css?v=1.3.1">
 </head>
 <body>
 <main class="wrap">
 <header class="hero">
   <div>
-    <span class="badge">v1.3.0</span>
+    <span class="badge">v1.3.1</span>
     <h1>全通路比價中心</h1>
     <p>比的不是標價，是你最後到底要掏多少錢。</p>
   </div>
 </header>
-
 <section class="card">
 <h2>商品條件</h2>
 <div class="grid">
@@ -26,36 +25,22 @@
 <option>家具寢具</option><option>清潔用品</option><option>寵物用品</option>
 <option value="美妝日用">美妝日用</option><option>其他</option>
 </select></label>
-
-<label>品牌<input id="brand" placeholder="例：大金、Panasonic"></label>
-<label>型號 / 關鍵字<input id="model" placeholder="例：FTXV71ZVLT"></label>
+<label>品牌<input id="brand" placeholder="例：Apple、Samsung、大金"></label>
+<label>型號 / 關鍵字<input id="model" placeholder="例：iPhone 17 Pro Max"></label>
 <label>年份<select id="year"></select></label>
-
 <label>地區
 <select id="region">
-<option value="0">台灣本島一般地區</option>
-<option value="100">偏遠地區 +100</option>
-<option value="300">山區 +300</option>
-<option value="500">離島 +500</option>
+<option value="0">台灣本島一般地區</option><option value="100">偏遠地區 +100</option><option value="300">山區 +300</option><option value="500">離島 +500</option>
 </select></label>
-
 <label>樓層搬運
 <select id="floor">
-<option value="0">無</option>
-<option value="100">2F +100</option>
-<option value="200">3F +200</option>
-<option value="300">4F +300</option>
-<option value="500">5F以上 +500</option>
+<option value="0">無</option><option value="100">2F +100</option><option value="200">3F +200</option><option value="300">4F +300</option><option value="500">5F以上 +500</option>
 </select></label>
 </div>
-
 <div class="channels">
   <div class="channel-title">比價通路</div>
   <div class="channel-picker">
-    <button type="button" id="channelPickerBtn" class="channel-picker-btn">
-      <span id="channelPickerText">選擇比價通路</span>
-      <span>▼</span>
-    </button>
+    <button type="button" id="channelPickerBtn" class="channel-picker-btn"><span id="channelPickerText">選擇比價通路</span><span>▼</span></button>
     <div id="channelPickerPanel" class="channel-picker-panel">
       <div class="channel-actions">
         <button type="button" id="recommendedBtn">依分類推薦</button>
@@ -66,10 +51,9 @@
     </div>
   </div>
 </div>
-
-<button id="searchBtn" class="primary">自動搜尋價格</button><p class="hint">系統會自動搜尋網路通路價格；找不到的通路仍可手動開啟搜尋。</p>
+<button id="searchBtn" class="primary">自動搜尋價格</button>
+<p class="hint">系統會搜尋參考價格；按「前往確認售價」會直接開啟該通路搜尋頁，不再繞 Google Shopping。</p>
 </section>
-
 <section class="card">
 <h2>折價 / 加價因素</h2>
 <div class="grid">
@@ -84,20 +68,12 @@
 </div>
 <p class="hint">公式：標價 − 折扣 − 折價券 − 點數 − 平台回饋 − 舊機折抵 − 信用卡回饋 + 運費 + 地區費 + 樓層費 + 安裝費</p>
 </section>
-
 <section class="card">
-<div class="result-head">
-<h2>比價結果</h2>
-<select id="sort">
-<option value="effective">依到手價排序</option>
-<option value="listed">依標價排序</option>
-<option value="channel">依通路排序</option>
-</select>
-</div>
+<div class="result-head"><h2>比價結果</h2><select id="sort"><option value="effective">依到手價排序</option><option value="listed">依標價排序</option><option value="channel">依通路排序</option></select></div>
 <div id="summary" class="summary">系統載入中...</div>
 <div id="results" class="results empty">輸入商品後按「自動搜尋價格」。</div>
 </section>
 </main>
-<script src="app.js?v=1.3.0"></script>
+<script src="app.js?v=1.3.1"></script>
 </body>
 </html>
