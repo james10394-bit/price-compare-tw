@@ -18,3 +18,4 @@ input,select{width:100%;background:#0c1425;color:var(--text);border:1px solid va
 .best{border-color:var(--accent);box-shadow:0 0 0 1px rgba(112,225,181,.2)}
 @media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.item-top{grid-template-columns:1fr 1fr}.link{grid-column:1/-1;text-align:center}}
 @media(max-width:540px){.wrap{padding:14px}.grid{grid-template-columns:1fr}.hero h1{font-size:27px}.item-top{grid-template-columns:1fr}.result-head{align-items:stretch;flex-direction:column}.result-head select{width:100%}}
+.selected-by-category{border-color:var(--accent);box-shadow:0 0 0 1px rgba(112,225,181,.18)}

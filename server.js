@@ -16,21 +16,31 @@ app.use(express.static(path.join(__dirname, "public"), {
 }));
 
 const CHANNELS = [
-  { id:"pchome", name:"PChome 24h", domains:["pchome.com.tw","24h.pchome.com.tw"], search:q=>`https://24h.pchome.com.tw/search/?q=${encodeURIComponent(q)}` },
-  { id:"momo", name:"momo購物網", domains:["momoshop.com.tw"], search:q=>`https://www.momoshop.com.tw/search/searchShop.jsp?keyword=${encodeURIComponent(q)}` },
-  { id:"yahoo", name:"Yahoo購物中心", domains:["tw.buy.yahoo.com"], search:q=>`https://tw.buy.yahoo.com/search/product?p=${encodeURIComponent(q)}` },
-  { id:"shopee", name:"蝦皮購物", domains:["shopee.tw"], search:q=>`https://shopee.tw/search?keyword=${encodeURIComponent(q)}` },
-  { id:"tk3c", name:"燦坤3C", domains:["tk3c.com"], search:q=>`https://www.tk3c.com/search.aspx?q=${encodeURIComponent(q)}` },
-  { id:"elifemall", name:"全國電子", domains:["elifemall.com.tw"], search:q=>`https://www.elifemall.com.tw/search?keyword=${encodeURIComponent(q)}` },
-  { id:"costco", name:"Costco", domains:["costco.com.tw"], search:q=>`https://www.costco.com.tw/search?text=${encodeURIComponent(q)}` },
-  { id:"sunfar", name:"順發3C", domains:["sunfar.com.tw"], search:q=>`https://www.google.com/search?q=${encodeURIComponent("site:sunfar.com.tw "+q)}` },
-  { id:"nova", name:"NOVA資訊廣場", domains:["nova.com.tw"], search:q=>`https://www.google.com/search?q=${encodeURIComponent("site:nova.com.tw "+q)}` },
-  { id:"sinya", name:"欣亞數位", domains:["sinya.com.tw"], search:q=>`https://www.google.com/search?q=${encodeURIComponent("site:sinya.com.tw "+q)}` },
-  { id:"eclife", name:"EcLife良興", domains:["ec-life.com"], search:q=>`https://www.google.com/search?q=${encodeURIComponent("site:ec-life.com "+q)}` },
-  { id:"coolpc", name:"原價屋", domains:["coolpc.com.tw"], search:q=>`https://www.google.com/search?q=${encodeURIComponent("site:coolpc.com.tw "+q)}` },
-  { id:"autobuy", name:"AUTOBUY", domains:["autobuy.tw"], search:q=>`https://www.google.com/search?q=${encodeURIComponent("site:autobuy.tw "+q)}` },
-  { id:"sanwell", name:"三井3C", domains:[], search:q=>`https://www.google.com/search?q=${encodeURIComponent("三井3C "+q)}` },
-  { id:"nipponbashi", name:"日本橋資訊廣場", domains:[], search:q=>`https://www.google.com/search?q=${encodeURIComponent("日本橋資訊廣場 "+q)}` }
+  { id:"pchome", name:"PChome 24h", categories:["3C","大家電","廚房家電","生活家電","手機平板","生活用品"], domains:["pchome.com.tw","24h.pchome.com.tw"], search:q=>`https://24h.pchome.com.tw/search/?q=${encodeURIComponent(q)}` },
+  { id:"momo", name:"momo購物網", categories:["3C","大家電","廚房家電","生活家電","手機平板","生活用品","美妝日用","清潔用品","寵物用品"], domains:["momoshop.com.tw"], search:q=>`https://www.momoshop.com.tw/search/searchShop.jsp?keyword=${encodeURIComponent(q)}` },
+  { id:"yahoo", name:"Yahoo購物中心", categories:["3C","大家電","廚房家電","生活家電","手機平板","生活用品","美妝日用"], domains:["tw.buy.yahoo.com"], search:q=>`https://tw.buy.yahoo.com/search/product?p=${encodeURIComponent(q)}` },
+  { id:"shopee", name:"蝦皮購物", categories:["3C","大家電","廚房家電","生活家電","手機平板","生活用品","美妝日用","清潔用品","寵物用品","家具寢具"], domains:["shopee.tw"], search:q=>`https://shopee.tw/search?keyword=${encodeURIComponent(q)}` },
+  { id:"tk3c", name:"燦坤3C", categories:["3C","大家電","廚房家電","生活家電","手機平板"], domains:["tk3c.com"], search:q=>`https://www.tk3c.com/search.aspx?q=${encodeURIComponent(q)}` },
+  { id:"elifemall", name:"全國電子", categories:["3C","大家電","廚房家電","生活家電","手機平板"], domains:["elifemall.com.tw"], search:q=>`https://www.elifemall.com.tw/search?keyword=${encodeURIComponent(q)}` },
+  { id:"costco", name:"Costco", categories:["3C","大家電","廚房家電","生活家電","生活用品","美妝日用","清潔用品"], domains:["costco.com.tw"], search:q=>`https://www.costco.com.tw/search?text=${encodeURIComponent(q)}` },
+
+  // 3C / 電腦通路
+  { id:"sunfar", name:"順發3C", categories:["3C","手機平板"], domains:["sunfar.com.tw"], search:q=>`https://www.google.com/search?q=${encodeURIComponent("site:sunfar.com.tw "+q)}` },
+  { id:"nova", name:"NOVA資訊廣場", categories:["3C","手機平板"], domains:["nova.com.tw"], search:q=>`https://www.google.com/search?q=${encodeURIComponent("site:nova.com.tw "+q)}` },
+  { id:"sinya", name:"欣亞數位", categories:["3C"], domains:["sinya.com.tw"], search:q=>`https://www.google.com/search?q=${encodeURIComponent("site:sinya.com.tw "+q)}` },
+  { id:"eclife", name:"EcLife良興", categories:["3C","生活家電"], domains:["ec-life.com"], search:q=>`https://www.google.com/search?q=${encodeURIComponent("site:ec-life.com "+q)}` },
+  { id:"coolpc", name:"原價屋", categories:["3C"], domains:["coolpc.com.tw"], search:q=>`https://www.google.com/search?q=${encodeURIComponent("site:coolpc.com.tw "+q)}` },
+  { id:"autobuy", name:"AUTOBUY", categories:["3C"], domains:["autobuy.tw"], search:q=>`https://www.google.com/search?q=${encodeURIComponent("site:autobuy.tw "+q)}` },
+  { id:"sanwell", name:"三井3C", categories:["3C","手機平板"], domains:[], search:q=>`https://www.google.com/search?q=${encodeURIComponent("三井3C "+q)}` },
+  { id:"nipponbashi", name:"日本橋資訊廣場", categories:["3C"], domains:[], search:q=>`https://www.google.com/search?q=${encodeURIComponent("日本橋資訊廣場 "+q)}` },
+
+  // 美妝 / 藥妝 / 日用品通路
+  { id:"poya", name:"寶雅 POYA", categories:["美妝日用","生活用品","清潔用品"], domains:["poya.com.tw"], search:q=>`https://www.google.com/search?q=${encodeURIComponent("site:poya.com.tw "+q)}` },
+  { id:"cosmed", name:"康是美 COSMED", categories:["美妝日用","生活用品"], domains:["cosmed.com.tw"], search:q=>`https://www.google.com/search?q=${encodeURIComponent("site:cosmed.com.tw "+q)}` },
+  { id:"watsons", name:"屈臣氏 Watsons", categories:["美妝日用","生活用品"], domains:["watsons.com.tw"], search:q=>`https://www.google.com/search?q=${encodeURIComponent("site:watsons.com.tw "+q)}` },
+  { id:"tomods", name:"Tomod's", categories:["美妝日用","生活用品"], domains:["tomods.com.tw"], search:q=>`https://www.google.com/search?q=${encodeURIComponent("site:tomods.com.tw "+q)}` },
+  { id:"matsumoto", name:"松本清", categories:["美妝日用","生活用品"], domains:["matsumotokiyoshi-tw.com"], search:q=>`https://www.google.com/search?q=${encodeURIComponent("松本清 台灣 "+q)}` },
+  { id:"sasa", name:"莎莎 SaSa", categories:["美妝日用"], domains:["sasa.com.tw"], search:q=>`https://www.google.com/search?q=${encodeURIComponent("莎莎 SaSa 台灣 "+q)}` }
 ];
 
 const channelById = Object.fromEntries(CHANNELS.map(c=>[c.id,c]));
@@ -90,7 +100,7 @@ async function serperShopping(query){
 
 app.get("/api/health",(req,res)=>res.json({
   ok:true,
-  version:"1.1.0",
+  version:"1.2.0",
   automaticPriceSearch:Boolean(SERPER_API_KEY)
 }));
 
@@ -109,7 +119,7 @@ app.post("/api/search", async (req,res)=>{
   if(!SERPER_API_KEY){
     return res.json({
       query:cleanQuery,
-      version:"1.1.0",
+      version:"1.2.0",
       setupRequired:true,
       message:"尚未設定 SERPER_API_KEY，因此只能建立通路搜尋連結。",
       results:selected.map((c,i)=>({
@@ -174,7 +184,7 @@ app.post("/api/search", async (req,res)=>{
 
     res.json({
       query:cleanQuery,
-      version:"1.1.0",
+      version:"1.2.0",
       setupRequired:false,
       automatic:true,
       found:results.filter(r=>r.listedPrice!=null).length,
@@ -186,4 +196,4 @@ app.post("/api/search", async (req,res)=>{
   }
 });
 
-app.listen(PORT,"0.0.0.0",()=>console.log(`Price Compare TW v1.1.0 running on port ${PORT}`));
+app.listen(PORT,"0.0.0.0",()=>console.log(`Price Compare TW v1.2.0 running on port ${PORT}`));

@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>全通路比價中心 v1.1.0</title>
+  <title>全通路比價中心 v1.2.0</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <main class="wrap">
 <header class="hero">
   <div>
-    <span class="badge">v1.1.0</span>
+    <span class="badge">v1.2.0</span>
     <h1>全通路比價中心</h1>
     <p>比的不是標價，是你最後到底要掏多少錢。</p>
   </div>
@@ -22,9 +22,9 @@
 <label>商品類型
 <select id="category">
 <option>大家電</option><option>廚房家電</option><option>生活家電</option>
-<option>3C資訊</option><option>手機平板</option><option>生活用品</option>
+<option value="3C">3C資訊</option><option>手機平板</option><option>生活用品</option>
 <option>家具寢具</option><option>清潔用品</option><option>寵物用品</option>
-<option>美妝日用</option><option>其他</option>
+<option value="美妝日用">美妝日用</option><option>其他</option>
 </select></label>
 
 <label>品牌<input id="brand" placeholder="例：大金、Panasonic"></label>
@@ -85,6 +85,6 @@
 <div id="results" class="results empty">輸入商品後按「自動搜尋價格」。</div>
 </section>
 </main>
-<script src="app.js?v=1.1.0"></script>
+<script src="app.js?v=1.2.0"></script>
 </body>
 </html>

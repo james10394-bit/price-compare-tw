@@ -1,33 +1,53 @@
-# 全通路比價中心 v1.1.0
+# 全通路比價中心 v1.2.0
 
-## 這版才是真正的「自動價格搜尋」
+## 新增功能
 
-v1.0.x 只會建立各通路搜尋連結，所以價格欄會一直顯示「尚未輸入」。
+### 美妝 / 藥妝通路
+- 寶雅 POYA
+- 康是美 COSMED
+- 屈臣氏 Watsons
+- Tomod's
+- 松本清
+- 莎莎 SaSa
 
-v1.1.0 加入 Google Shopping 即時價格搜尋（Serper API）。
+### 分類自動勾選通路
+當「商品類型」下拉選單變更時，系統會自動勾選對應通路。
 
-### 支援通路
-PChome、momo、Yahoo購物中心、蝦皮、燦坤3C、全國電子、Costco、順發3C、NOVA、欣亞、良興、原價屋、AUTOBUY、三井3C、日本橋等。
+例如：
 
-### Render 必須增加一個環境變數
+- 3C資訊：
+  - PChome
+  - momo
+  - Yahoo
+  - 蝦皮
+  - 燦坤3C
+  - 全國電子
+  - 順發3C
+  - NOVA
+  - 欣亞
+  - 良興
+  - 原價屋
+  - AUTOBUY
+  - 三井3C
+  - 日本橋
 
-1. 到 https://serper.dev 建立帳號並取得 API Key
-2. Render → price-compare-tw → Environment
-3. Add Environment Variable
-4. Key：`SERPER_API_KEY`
-5. Value：貼上 Serper API Key
-6. Save Changes / Redeploy
+- 美妝日用：
+  - momo
+  - Yahoo
+  - 蝦皮
+  - Costco
+  - 寶雅
+  - 康是美
+  - 屈臣氏
+  - Tomod's
+  - 松本清
+  - 莎莎
 
-沒有 SERPER_API_KEY 時，系統會退回舊版「通路搜尋連結」模式，不會假裝有抓到價格。
+使用者仍可手動取消或勾選任何通路。
 
-### Render
+## Render
 Build Command：`npm install`
 Start Command：`npm start`
 
-### 健康檢查
-開啟：
-`/api/health`
-
-若顯示：
-`"automaticPriceSearch": true`
-代表自動價格搜尋已經啟用。
+環境變數：
+`SERPER_API_KEY`
