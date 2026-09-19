@@ -2,7 +2,7 @@ const $ = id => document.getElementById(id);
 let items = [];
 
 function money(n){
-  if(n===null || n===undefined || Number.isNaN(Number(n))) return "尚未輸入";
+  if(n===null || n===undefined || Number.isNaN(Number(n))) return "尚未找到";
   return "NT$ " + Math.max(0,Math.round(Number(n))).toLocaleString("zh-TW");
 }
 function num(id){return Number($(id).value||0)}
@@ -13,20 +13,58 @@ function calcEffective(listed){
   const card=afterDiscount*num("cardPct")/100;
   return Math.max(0,afterDiscount-num("coupon")-num("points")-num("platformCredit")-num("tradeIn")-card+num("shipping")+num("region")+num("floor")+num("installFee"));
 }
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function escapeHtml(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function setStatus(msg,error=false){$("summary").textContent=msg;$("summary").style.color=error?"#ff8a8a":""}
-function render(){
+
+function render(extraMessage=""){
   items.forEach(i=>i.effectivePrice=calcEffective(i.listedPrice));
   const mode=$("sort").value;
-  const sorted=[...items].sort((a,b)=>mode==="channel"?a.channel.localeCompare(b.channel,"zh-Hant"):mode==="listed"?(a.listedPrice??Infinity)-(b.listedPrice??Infinity):(a.effectivePrice??Infinity)-(b.effectivePrice??Infinity));
+  const sorted=[...items].sort((a,b)=>{
+    if(mode==="channel") return a.channel.localeCompare(b.channel,"zh-Hant");
+    if(mode==="listed") return (a.listedPrice??Infinity)-(b.listedPrice??Infinity);
+    return (a.effectivePrice??Infinity)-(b.effectivePrice??Infinity);
+  });
   const priced=sorted.filter(x=>x.effectivePrice!==null);
   const bestId=priced[0]?.id;
-  setStatus(priced.length?`目前最低到手價：${money(priced[0].effectivePrice)}｜${priced[0].channel}`:"比價清單已建立。請開啟各通路查價，再填入標價。");
+  if(extraMessage) setStatus(extraMessage);
+  else setStatus(priced.length?`已找到 ${priced.length} 個通路價格｜目前最低到手價：${money(priced[0].effectivePrice)}｜${priced[0].channel}`:"目前沒有抓到可辨識價格，可開啟通路搜尋。");
+
   $("results").className="results";
-  $("results").innerHTML=sorted.map(i=>`<article class="item ${i.id===bestId?"best":""}"><div class="item-top"><div><h3>${escapeHtml(i.channel)}</h3><div class="small">${escapeHtml(i.title)}</div></div><label>通路標價<input class="priceInput" type="number" min="0" inputmode="numeric" placeholder="輸入查到的價格" data-id="${i.id}" value="${i.listedPrice??""}"></label><div><div class="small">估算到手價</div><div class="effective">${money(i.effectivePrice)}</div></div><a class="link" href="${i.url}" target="_blank" rel="noopener noreferrer">開啟通路搜尋</a></div></article>`).join("");
-  document.querySelectorAll(".priceInput").forEach(inp=>inp.addEventListener("input",e=>{const item=items.find(x=>x.id===e.target.dataset.id);if(!item)return;item.listedPrice=e.target.value===""?null:Number(e.target.value);render()}));
+  $("results").innerHTML=sorted.map(i=>`
+    <article class="item ${i.id===bestId?"best":""}">
+      <div class="item-top">
+        <div>
+          <h3>${escapeHtml(i.channel)}</h3>
+          <div class="small">${escapeHtml(i.title)}</div>
+          <div class="small">${i.sourceMode==="automatic"?"✅ 自動取得價格":"⚠️ 尚未自動取得"}</div>
+        </div>
+        <label>通路標價
+          <input class="priceInput" type="number" min="0" inputmode="numeric"
+            placeholder="找不到時可手動輸入" data-id="${i.id}" value="${i.listedPrice??""}">
+        </label>
+        <div>
+          <div class="small">估算到手價</div>
+          <div class="effective">${money(i.effectivePrice)}</div>
+        </div>
+        <a class="link" href="${i.url}" target="_blank" rel="noopener noreferrer">查看商品</a>
+      </div>
+    </article>`).join("");
+
+  document.querySelectorAll(".priceInput").forEach(inp=>inp.addEventListener("input",e=>{
+    const item=items.find(x=>x.id===e.target.dataset.id);
+    if(!item)return;
+    item.listedPrice=e.target.value===""?null:Number(e.target.value);
+    render();
+  }));
 }
-async function getJSON(url,options){const r=await fetch(url,options);if(!r.ok)throw new Error(`${r.status} ${r.statusText}`);return r.json()}
+
+async function getJSON(url,options){
+  const r=await fetch(url,options);
+  const data=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(data.message||`${r.status} ${r.statusText}`);
+  return data;
+}
+
 window.addEventListener("DOMContentLoaded",async()=>{
   try{
     const y=new Date().getFullYear();
@@ -34,25 +72,37 @@ window.addEventListener("DOMContentLoaded",async()=>{
     setStatus("正在載入通路...");
     const channels=await getJSON("/api/channels");
     $("channelBox").innerHTML=channels.map(c=>`<label class="check"><input type="checkbox" value="${c.id}" checked>${escapeHtml(c.name)}</label>`).join("");
-    setStatus("輸入品牌或型號後，按「開始比價」。");
+    setStatus("輸入品牌與型號後，按「自動搜尋價格」。");
 
     $("searchBtn").addEventListener("click",async()=>{
       const q=[$("brand").value,$("model").value,$("year").value].map(x=>String(x||"").trim()).filter(Boolean).join(" ");
-      if(!q){setStatus("請至少輸入品牌、型號或關鍵字其中一項。",true);return}
+      if(!q){setStatus("請至少輸入品牌、型號或關鍵字。",true);return}
       const selected=[...document.querySelectorAll("#channelBox input:checked")].map(x=>x.value);
-      if(!selected.length){setStatus("請至少勾選一個比價通路。",true);return}
-      const btn=$("searchBtn"),old=btn.textContent;btn.disabled=true;btn.textContent="搜尋中...";setStatus("正在建立比價清單...");
+      if(!selected.length){setStatus("請至少勾選一個通路。",true);return}
+
+      const btn=$("searchBtn"),old=btn.textContent;
+      btn.disabled=true;btn.textContent="正在搜尋全網價格...";
+      setStatus("正在搜尋 Google Shopping 與各通路價格，請稍候...");
       try{
-        const data=await getJSON("/api/search",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({query:q,channels:selected,category:$("category").value})});
+        const data=await getJSON("/api/search",{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({query:q,channels:selected,category:$("category").value})
+        });
         items=(data.results||[]).map(x=>({...x,effectivePrice:null}));
-        render();
+        if(data.setupRequired){
+          render("⚠️ 尚未設定價格搜尋金鑰 SERPER_API_KEY，目前只能建立通路搜尋連結。");
+        }else{
+          render(`自動搜尋完成：找到 ${data.found||0} 個通路價格。`);
+        }
         setTimeout(()=>document.querySelector(".result-head")?.scrollIntoView({behavior:"smooth",block:"start"}),100);
       }catch(e){
-        items=[];$("results").className="results empty";$("results").textContent="搜尋失敗，請稍後再試。";setStatus("搜尋失敗："+e.message,true);
+        items=[];$("results").className="results empty";$("results").textContent="價格搜尋失敗。";
+        setStatus("價格搜尋失敗："+e.message,true);
       }finally{btn.disabled=false;btn.textContent=old}
     });
 
-    ["coupon","discountPct","cardPct","points","platformCredit","installFee","shipping","tradeIn","region","floor"].forEach(id=>$(id).addEventListener("input",render));
-    $("sort").addEventListener("change",render);
+    ["coupon","discountPct","cardPct","points","platformCredit","installFee","shipping","tradeIn","region","floor"].forEach(id=>$(id).addEventListener("input",()=>render()));
+    $("sort").addEventListener("change",()=>render());
   }catch(e){setStatus("系統初始化失敗："+e.message,true)}
 });
