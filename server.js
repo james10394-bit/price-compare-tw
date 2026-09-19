@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PORT = process.env.PORT || 3000;
 const SERPER_API_KEY = process.env.SERPER_API_KEY || "";
-const VERSION = "1.4.0";
+const VERSION = "1.4.1";
 
 app.use(express.json({limit:"1mb"}));
 app.use(express.static(path.join(__dirname,"public"),{
@@ -54,9 +54,52 @@ const COMPARISON_SITES=[
 const channelById=Object.fromEntries(CHANNELS.map(c=>[c.id,c]));
 const UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36";
 
-function normalizeText(s){return String(s||"").toLowerCase().replace(/&nbsp;|\s|[_\-\/\\()[\]{}：:，,。.!！?？]/g,"")}
-function tokens(q){return String(q||"").split(/\s+/).map(normalizeText).filter(x=>x.length>=2)}
-function modelMatch(title,q){const t=normalizeText(title),ts=tokens(q);if(!ts.length)return{score:0,confidence:"low"};let hits=0;for(const x of ts)if(t.includes(x))hits++;const ratio=hits/ts.length;const score=t.includes(normalizeText(q))?100:Math.round(ratio*90);return{score,confidence:score>=80?"high":score>=50?"medium":"low"}}
+const QUERY_ALIASES=[
+  [/愛瘋|唉鳳|哀鳳/gi,"iphone"],
+  [/蘋果手機|蘋果iphone/gi,"iphone"],
+  [/三星手機/gi,"samsung"],
+  [/小米手機/gi,"xiaomi"],
+  [/紅米/gi,"redmi"]
+];
+function normalizeUnicode(s){return String(s||"").normalize("NFKC")}
+function aliasQuery(s){let x=normalizeUnicode(s);for(const [rx,to] of QUERY_ALIASES)x=x.replace(rx,to);return x}
+function normalizeCapacity(s){
+  return aliasQuery(s)
+    .replace(/(128|256|512)\s*g(?:b)?\b/gi,"$1gb")
+    .replace(/([124])\s*t(?:b)?\b/gi,"$1tb");
+}
+function normalizeText(s){return normalizeCapacity(s).toLowerCase().replace(/&nbsp;|\s|[_\-\/\\()[\]{}：:，,。.!！?？]/g,"")}
+function semanticTokens(q){
+  const x=normalizeCapacity(q).toLowerCase();
+  let compact=x.replace(/[^a-z0-9\u4e00-\u9fff]+/g,"");
+  const out=[];
+  const known=["iphone","samsung","galaxy","pixel","xiaomi","redmi","oppo","vivo","zenfone","rogphone"];
+  for(const k of known){if(compact.includes(k)){out.push(k);compact=compact.replaceAll(k,"")}}
+  for(const m of [...compact.matchAll(/(?:128|256|512)gb|[124]tb/g)]){out.push(m[0]);compact=compact.replace(m[0],"")}
+  for(const m of compact.matchAll(/\d{1,2}/g))out.push(m[0]);
+  const words=x.split(/[^a-z0-9\u4e00-\u9fff]+/).filter(Boolean);
+  for(const w of words){if(w.length>=2 && !/^(?:iphone|samsung|galaxy|pixel|xiaomi|redmi|oppo|vivo|zenfone|rogphone)?\d*(?:128|256|512)?gb?$/.test(w) && !out.includes(w))out.push(w)}
+  return [...new Set(out)];
+}
+function canonicalSearchQuery(q){
+  let x=normalizeCapacity(q).toLowerCase();
+  x=x.replace(/iphone\s*(\d+)/gi,"iphone $1");
+  x=x.replace(/(\d+)(?=(?:128|256|512)gb|[124]tb)/g,"$1 ");
+  x=x.replace(/((?:128|256|512)gb|[124]tb)/gi," $1 ");
+  x=x.replace(/\s+/g," ").trim();
+  return x.replace(/\biphone\b/g,"iPhone").replace(/(128|256|512)gb/gi,"$1GB").replace(/([124])tb/gi,"$1TB");
+}
+function tokens(q){return semanticTokens(q)}
+function modelMatch(title,q){
+  const t=normalizeText(title),ts=tokens(q);
+  if(!ts.length)return{score:0,confidence:"low"};
+  let hits=0,weight=0,total=0;
+  for(const x of ts){const w=/^(?:128|256|512)gb$|^[124]tb$/.test(x)?2:/^\d+$/.test(x)?1.5:1;total+=w;if(t.includes(normalizeText(x))){hits++;weight+=w}}
+  const ratio=total?weight/total:0;
+  const exact=t.includes(normalizeText(q));
+  const score=exact?100:Math.round(ratio*95);
+  return{score,confidence:score>=78?"high":score>=48?"medium":"low"}
+}
 function parsePrice(v){if(v==null)return null;if(typeof v==="number")return Number.isFinite(v)?v:null;const m=String(v).replace(/NT\$|TWD|NTD|新台幣|售價|特價|優惠價|價格/gi,"").replace(/[,，\s]/g,"").match(/(?:\$)?(\d{2,7})(?:\.\d+)?/);return m?Number(m[1]):null}
 function isImplausiblePrice(price,category,query,title=""){
   if(!Number.isFinite(price)||price<=0||price<100)return true;
@@ -97,7 +140,8 @@ async function fetchWithTimeout(url,ms=6500){
 }
 
 async function directOfficial(c,q,category){
-  const url=c.search(q);
+  const searchQ=canonicalSearchQuery(q);
+  const url=c.search(searchQ);
   try{
     const r=await fetchWithTimeout(url);
     const ct=r.headers.get("content-type")||"";
@@ -131,22 +175,24 @@ function candidateFromSerper(data,q,category,domains=[]){
 }
 async function googleBackup(c,q,category){
   if(!SERPER_API_KEY)return null;
+  const searchQ=canonicalSearchQuery(q);
   const domainQ=c.domains.map(d=>`site:${d}`).join(" OR ");
-  const data=await serperSearch(`(${domainQ}) ${q}`);
+  const data=await serperSearch(`(${domainQ}) ${searchQ}`);
   const hit=candidateFromSerper(data,q,category,c.domains);
-  return hit?{...hit,sourceMode:"google-backup",priceLabel:"Google 備援價",url:c.search(q),sourceUrl:hit.url}:null;
+  return hit?{...hit,sourceMode:"google-backup",priceLabel:"Google 備援價",url:c.search(searchQ),sourceUrl:hit.url}:null;
 }
 async function comparisonBackup(c,q,category){
+  const searchQ=canonicalSearchQuery(q);
   for(const site of COMPARISON_SITES){
     // First try the comparison site itself.
     try{
-      const compareQuery=`${q} ${c.name}`;
+      const compareQuery=`${searchQ} ${c.name}`;
       const r=await fetchWithTimeout(site.search(compareQuery),5000);
       if(r.ok){const raw=await r.text();const cs=collectPriceCandidates(`${htmlText(raw)} ${raw}`,compareQuery,category);if(cs.length)return{...cs[0],url:site.search(compareQuery),sourceMode:"comparison",priceLabel:`${site.name} 補查價`,comparisonSite:site.name,confidence:modelMatch(cs[0].title,compareQuery).confidence}}
     }catch{}
     // If blocked, Google only searches this comparison site as the last fallback.
     if(SERPER_API_KEY){
-      const compareQuery=`${q} ${c.name}`;
+      const compareQuery=`${searchQ} ${c.name}`;
       const data=await serperSearch(`site:${site.domain} ${compareQuery}`); const hit=candidateFromSerper(data,compareQuery,category,[site.domain]);
       if(hit)return{...hit,url:site.search(compareQuery),sourceMode:"comparison",priceLabel:`${site.name} 補查價`,comparisonSite:site.name,sourceUrl:hit.url};
     }
@@ -161,7 +207,7 @@ async function resolveChannel(c,q,category){
   if(google)return google;
   const comp=await comparisonBackup(c,q,category);
   if(comp)return comp;
-  return{listedPrice:null,title:q,url:c.search(q),sourceMode:"unavailable",priceLabel:"尚未取得",confidence:"unknown",failure:direct.reason||"not_found"};
+  return{listedPrice:null,title:q,url:c.search(canonicalSearchQuery(q)),sourceMode:"unavailable",priceLabel:"尚未取得",confidence:"unknown",failure:direct.reason||"not_found"};
 }
 
 app.get("/api/health",(req,res)=>res.json({ok:true,version:VERSION,searchOrder:["official-direct","google-backup","comparison"],googleBackup:Boolean(SERPER_API_KEY)}));
@@ -174,7 +220,7 @@ app.post("/api/search",async(req,res)=>{
   try{
     const raw=await Promise.all(selected.map(c=>resolveChannel(c,q,category).then(x=>({c,x}))));
     const results=raw.map(({c,x},i)=>({id:`${c.id}-${Date.now()}-${i}`,channel:c.name,channelId:c.id,...x}));
-    return res.json({query:q,version:VERSION,found:results.filter(x=>x.listedPrice!=null).length,durationMs:Date.now()-started,results});
+    return res.json({query:q,normalizedQuery:canonicalSearchQuery(q),version:VERSION,found:results.filter(x=>x.listedPrice!=null).length,durationMs:Date.now()-started,results});
   }catch(e){console.error(e);return res.status(502).json({error:"search_failed",message:e.message});}
 });
 
