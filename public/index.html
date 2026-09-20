@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>全通路比價戰情室 v1.5.0</title>
+  <title>全通路比價戰情室 v1.6.0</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <main class="wrap">
 <header class="hero">
   <div>
-    <span class="badge">v1.5.0</span>
+    <span class="badge">v1.6.0</span>
     <h1>全通路比價戰情室</h1>
     <p>比的不是標價，是你最後到底要掏多少錢。</p>
   </div>
@@ -28,7 +28,14 @@
 </select></label>
 
 <label>品牌<input id="brand" placeholder="例：大金、Panasonic"></label>
-<label>型號 / 關鍵字<input id="model" placeholder="例：FTXV71ZVLT"></label>
+<label>型號 / 關鍵字
+  <input id="model" placeholder="例：冷氣、iPhone 18 Pro、FTXV71ZVLT">
+  <span id="brandAnalysis" class="smart-analysis"></span>
+</label>
+<label id="dynamicParamWrap" style="display:none">
+  <span id="dynamicParamLabel">智慧條件</span>
+  <select id="dynamicParam"></select>
+</label>
 <label>年份<select id="year"></select></label>
 
 <label>地區
@@ -98,6 +105,6 @@
 <div id="results" class="results empty">輸入商品後按「自動搜尋價格」。</div>
 </section>
 </main>
-<script src="app.js?v=1.5.0"></script>
+<script src="app.js?v=1.6.0"></script>
 </body>
 </html>

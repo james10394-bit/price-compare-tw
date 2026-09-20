@@ -59,6 +59,53 @@ function autoSelectChannels(){
   setStatus(`已依「${category}」自動勾選 ${count} 個相關通路。`);
 }
 
+
+let smartState={productType:"",canonicalBrand:"",dynamicType:""};
+
+async function analyzeInputs(){
+  const brand=$("brand").value.trim();
+  const model=$("model").value.trim();
+  const category=$("category").value;
+
+  try{
+    const data=await getJSON("/api/analyze",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({brand,model,category})
+    });
+
+    smartState={
+      productType:data.productType||"",
+      canonicalBrand:data.canonicalBrand||"",
+      dynamicType:data.dynamic?.type||""
+    };
+
+    $("brandAnalysis").textContent=data.canonicalBrand
+      ? `辨識品牌：${data.canonicalBrand}`
+      : "";
+
+    const wrap=$("dynamicParamWrap");
+    const select=$("dynamicParam");
+
+    if(data.dynamic?.options?.length){
+      $("dynamicParamLabel").textContent=data.dynamic.label||"智慧條件";
+      select.innerHTML=data.dynamic.options.map(x=>`<option value="${x}">${x==="不限"?"不限":x}</option>`).join("");
+      wrap.style.display="";
+    }else{
+      wrap.style.display="none";
+      select.innerHTML="";
+    }
+  }catch{
+    // 分析失敗不影響基本搜尋
+  }
+}
+
+let analyzeTimer=null;
+function scheduleAnalyze(){
+  clearTimeout(analyzeTimer);
+  analyzeTimer=setTimeout(analyzeInputs,250);
+}
+
 function confidenceText(c){
   if(c==="high") return "🟢 型號高度符合";
   if(c==="medium") return "🟡 可能同系列，建議確認規格";
@@ -146,7 +193,13 @@ window.addEventListener("DOMContentLoaded",async()=>{
       updatePickerText();
     });
 
-    $("category").addEventListener("change",autoSelectChannels);
+    $("category").addEventListener("change",()=>{
+      autoSelectChannels();
+      scheduleAnalyze();
+    });
+    $("brand").addEventListener("input",scheduleAnalyze);
+    $("model").addEventListener("input",scheduleAnalyze);
+    analyzeInputs();
 
     $("searchBtn").addEventListener("click",async()=>{
       const q=[$("brand").value,$("model").value,$("year").value]
@@ -163,11 +216,20 @@ window.addEventListener("DOMContentLoaded",async()=>{
       try{
         const data=await getJSON("/api/search",{
           method:"POST",headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({query:q,channels:selected,category:$("category").value})
+          body:JSON.stringify({
+            query:q,
+            brand:$("brand").value,
+            model:$("model").value,
+            year:$("year").value,
+            channels:selected,
+            category:$("category").value,
+            roomSize:smartState.dynamicType==="roomSize"?$("dynamicParam").value:"",
+            storage:smartState.dynamicType==="storage"?$("dynamicParam").value:""
+          })
         });
         items=(data.results||[]).map(x=>({...x,effectivePrice:null}));
         if(data.setupRequired) render("⚠️ 尚未設定 SERPER_API_KEY，目前只能建立通路搜尋連結。");
-        else render(`搜尋完成：找到 ${data.found||0} 個可辨識參考價格｜排除 ${data.filteredOut||0} 筆明顯異常價｜補查 ${data.fallbackChecked||0} 個未命中通路。`);
+        else render(`搜尋完成：官網直接取得 ${data.officialFound||0} 個｜總共取得 ${data.found||0} 個價格。其餘才使用 Google 補查。`);
         setTimeout(()=>document.querySelector(".result-head")?.scrollIntoView({behavior:"smooth",block:"start"}),100);
       }catch(e){
         items=[];$("results").className="results empty";$("results").textContent="價格搜尋失敗。";

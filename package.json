@@ -1,6 +1,6 @@
 {
   "name": "price-compare-tw",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,5 +10,5 @@
   "dependencies": {
     "express": "^4.21.2"
   },
-  "description": "全通路比價戰情室"
+  "description": "全通路比價戰情室｜官網優先、智慧商品條件"
 }

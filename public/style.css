@@ -33,3 +33,7 @@ input,select{width:100%;background:#0c1425;color:var(--text);border:1px solid va
 .channel-option{display:flex;flex-direction:row;align-items:center;gap:7px;background:#0c1425;padding:9px;border-radius:9px;color:var(--text)}
 .channel-option input{width:auto}
 @media(max-width:540px){.channel-group-list{grid-template-columns:1fr}.channel-picker{max-width:none}}
+
+.smart-analysis{display:block;margin-top:4px;font-size:12px;color:var(--accent)}
+#dynamicParamWrap{animation:smartFade .18s ease-out}
+@keyframes smartFade{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
